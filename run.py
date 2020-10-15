@@ -29,6 +29,7 @@ import resnet
 import data as data_lib
 import model as model_lib
 import model_util as model_util
+import attn_model
 
 import tensorflow.compat.v1 as tf
 import tensorflow_datasets as tfds
@@ -37,6 +38,10 @@ import tensorflow_hub as hub
 
 FLAGS = flags.FLAGS
 
+
+flags.DEFINE_enum(
+    'model_using', 'simclr', ['simclr', 'attn_simclr'],
+    'Which model to test, SimCLR or our modified version of SimCLR that has an attention mechanism added to it.')
 
 flags.DEFINE_float(
     'learning_rate', 0.3,
@@ -365,10 +370,14 @@ def main(argv):
   epoch_steps = int(round(num_train_examples / FLAGS.train_batch_size))
 
   resnet.BATCH_NORM_DECAY = FLAGS.batch_norm_decay
-  model = resnet.resnet_v1(
-      resnet_depth=FLAGS.resnet_depth,
-      width_multiplier=FLAGS.width_multiplier,
-      cifar_stem=FLAGS.image_size <= 32)
+
+  if FLAGS.model_using == 'simclr':
+    model = resnet.resnet_v1(
+        resnet_depth=FLAGS.resnet_depth,
+        width_multiplier=FLAGS.width_multiplier,
+        cifar_stem=FLAGS.image_size <= 32)
+  else:
+    model = attn_model.model()
 
   checkpoint_steps = (
       FLAGS.checkpoint_steps or (FLAGS.checkpoint_epochs * epoch_steps))
@@ -397,7 +406,7 @@ def main(argv):
       master=FLAGS.master,
       cluster=cluster)
   estimator = tf.estimator.tpu.TPUEstimator(
-      model_lib.build_model_fn(model, num_classes, num_train_examples),
+      model_lib.build_model_fn(model, num_classes, num_train_examples),  # does this also need to be changed?
       config=run_config,
       train_batch_size=FLAGS.train_batch_size,
       eval_batch_size=FLAGS.eval_batch_size,
