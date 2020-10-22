@@ -134,7 +134,8 @@ flags.DEFINE_integer(
     'fine_tune_after_block', -1,
     'The layers after which block that we will fine-tune. -1 means fine-tuning '
     'everything. 0 means fine-tuning after stem block. 4 means fine-tuning '
-    'just the linera head.')
+    'just the linera head.')  # does this mean linear head is 4 layers?? OR model has 5 blocks and linear head is 5th block?
+# when is linear head constructed? (model_util.projection_head) Is architecture printable with model.summary()?
 
 flags.DEFINE_string(
     'master', None,
@@ -309,6 +310,7 @@ def build_hub_module(model, num_classes, global_step, checkpoint_path):
       tf.io.gfile.rmtree(os.path.join(hub_export_dir, str(step_to_delete)))
 
 
+# does estimator.evaluate() then saves in specific location, (then calls build_hub_module)
 def perform_evaluation(estimator, input_fn, eval_steps, model, num_classes,
                        checkpoint_path=None):
   """Perform evaluation.
@@ -377,7 +379,7 @@ def main(argv):
         width_multiplier=FLAGS.width_multiplier,
         cifar_stem=FLAGS.image_size <= 32)
   else:
-    model = attn_model.model()
+    model = attn_model.get_models()  # returns list of [model_full, model_cropped]
 
   checkpoint_steps = (
       FLAGS.checkpoint_steps or (FLAGS.checkpoint_epochs * epoch_steps))
@@ -422,7 +424,7 @@ def main(argv):
             eval_steps=eval_steps,
             model=model,
             num_classes=num_classes,
-            checkpoint_path=ckpt)
+            checkpoint_path=ckpt)  # not included when mode='train_then_eval', default checkpoint_path=None
       except tf.errors.NotFoundError:
         continue
       if result['global_step'] >= train_steps:

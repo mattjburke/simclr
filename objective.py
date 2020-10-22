@@ -53,8 +53,72 @@ def add_contrastive_loss(hidden,
   # Get (normalized) hidden1 and hidden2.
   if hidden_norm:
     hidden = tf.math.l2_normalize(hidden, -1)
-  hidden1, hidden2 = tf.split(hidden, 2, 0)
-  batch_size = tf.shape(hidden1)[0]
+  hidden1, hidden2 = tf.split(hidden, 2, 0)  # splits hidden in half along 0 axis (batch size axis?), but should be duplicating hidden??
+  batch_size = tf.shape(hidden1)[0]  # maybe one batch from dataloader = bs/2 images + bs/2 transformed images ??
+  # we need to change how hidden1 and hidden2 are calculated so that they are fed through different base models
+
+  # Gather hidden1/hidden2 across replicas and create local labels.
+  if tpu_context is not None:
+    hidden1_large = tpu_cross_replica_concat(hidden1, tpu_context)
+    hidden2_large = tpu_cross_replica_concat(hidden2, tpu_context)
+    enlarged_batch_size = tf.shape(hidden1_large)[0]
+    # TODO(iamtingchen): more elegant way to convert u32 to s32 for replica_id.
+    replica_id = tf.cast(tf.cast(xla.replica_id(), tf.uint32), tf.int32)
+    labels_idx = tf.range(batch_size) + replica_id * batch_size
+    labels = tf.one_hot(labels_idx, enlarged_batch_size * 2)
+    masks = tf.one_hot(labels_idx, enlarged_batch_size)
+  else:
+    hidden1_large = hidden1
+    hidden2_large = hidden2
+    labels = tf.one_hot(tf.range(batch_size), batch_size * 2)
+    masks = tf.one_hot(tf.range(batch_size), batch_size)
+
+  logits_aa = tf.matmul(hidden1, hidden1_large, transpose_b=True) / temperature
+  logits_aa = logits_aa - masks * LARGE_NUM
+  logits_bb = tf.matmul(hidden2, hidden2_large, transpose_b=True) / temperature
+  logits_bb = logits_bb - masks * LARGE_NUM
+  logits_ab = tf.matmul(hidden1, hidden2_large, transpose_b=True) / temperature
+  logits_ba = tf.matmul(hidden2, hidden1_large, transpose_b=True) / temperature
+
+  loss_a = tf.losses.softmax_cross_entropy(
+      labels, tf.concat([logits_ab, logits_aa], 1), weights=weights)
+  loss_b = tf.losses.softmax_cross_entropy(
+      labels, tf.concat([logits_ba, logits_bb], 1), weights=weights)
+  loss = loss_a + loss_b
+
+  return loss, logits_ab, labels
+
+
+# hidden1 and hidden2 are fed as parameters, instead of splitting hidden into hidden1 and hidden2
+# This allows hidden1 to be a different architecture than hidden2 (as long as they have same output dimensions)
+def add_contrastive_loss_2(hidden1, hidden2,
+                         hidden_norm=True,
+                         temperature=1.0,
+                         tpu_context=None,
+                         weights=1.0):
+  """Compute loss for model.
+
+  Args:
+    hidden1: hidden vector (`Tensor`) of shape (1 * bsz, dim).
+    hidden2: hidden vector (`Tensor`) of shape (1 * bsz, dim).
+    hidden_norm: whether or not to use normalization on the hidden vector.
+    temperature: a `floating` number for temperature scaling.
+    tpu_context: context information for tpu.
+    weights: a weighting number or vector.
+
+  Returns:
+    A loss scalar.
+    The logits for contrastive prediction task.
+    The labels for contrastive prediction task.
+  """
+  # Get (normalized) hidden1 and hidden2.
+  if hidden_norm:
+    # hidden = tf.math.l2_normalize(hidden, -1)
+    hidden1 = tf.math.l2_normalize(hidden1, -1)
+    hidden2 = tf.math.l2_normalize(hidden2, -1)
+  # hidden1, hidden2 = tf.split(hidden, 2, 0)  # splits hidden in half along 0 axis (batch size axis?), but should be duplicating hidden??
+  batch_size = tf.shape(hidden1)[0]  # maybe one batch from dataloader = bs/2 images + bs/2 transformed images ??
+  # we need to change how hidden1 and hidden2 are calculated so that they are fed through different base models
 
   # Gather hidden1/hidden2 across replicas and create local labels.
   if tpu_context is not None:
