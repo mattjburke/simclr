@@ -407,12 +407,20 @@ def main(argv):
       keep_checkpoint_max=FLAGS.keep_checkpoint_max,
       master=FLAGS.master,
       cluster=cluster)
-  estimator = tf.estimator.tpu.TPUEstimator(
-      model_lib.build_model_fn(model, num_classes, num_train_examples),  # does this also need to be changed?
-      config=run_config,
-      train_batch_size=FLAGS.train_batch_size,
-      eval_batch_size=FLAGS.eval_batch_size,
-      use_tpu=FLAGS.use_tpu)
+  if FLAGS.model_using == 'simclr':
+      estimator = tf.estimator.tpu.TPUEstimator(
+          model_lib.build_model_fn(model, num_classes, num_train_examples),
+          config=run_config,
+          train_batch_size=FLAGS.train_batch_size,
+          eval_batch_size=FLAGS.eval_batch_size,
+          use_tpu=FLAGS.use_tpu)
+  else:
+      estimator = tf.estimator.tpu.TPUEstimator(
+          attn_model.build_model_fn(model, num_classes, num_train_examples),  # use function from attn_model instead
+          config=run_config,
+          train_batch_size=FLAGS.train_batch_size,
+          eval_batch_size=FLAGS.eval_batch_size,
+          use_tpu=FLAGS.use_tpu)
 
   if FLAGS.mode == 'eval':
     for ckpt in tf.train.checkpoints_iterator(
