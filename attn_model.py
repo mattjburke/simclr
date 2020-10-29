@@ -55,11 +55,16 @@ def build_model_fn(model, num_classes, num_train_examples):
 
     # Split channels, and optionally apply extra batched augmentation.
     features_list = tf.split(
-        features, num_or_size_splits=num_transforms, axis=-1)
+        features, num_or_size_splits=num_transforms, axis=-1)  # splits into 2 tensors with 3 channels instead of 1 tensor with 6 channels
     if FLAGS.use_blur and is_training and FLAGS.train_mode == 'pretrain':
       features_list = data_util.batch_random_blur(
           features_list, FLAGS.image_size, FLAGS.image_size)
-    features = tf.concat(features_list, 0)  # (num_transforms * bsz, h, w, c)
+    # crop images now that all other preprocessing has finished
+    if is_training and FLAGS.train_mode == 'pretrain':
+        features_list = data_util.batch_random_crop(features_list, FLAGS.crop_size, FLAGS.crop_size)  # cropped -> hiddens1
+    # features = tf.concat(features_list, 0)  # (num_transforms * bsz, h, w, c)
+    # Concatenating again is not needed since list elements are used separately from now on
+    features = features_list  # will this work in train_then_eval mode?
 
     # Base network forward pass.
     with tf.variable_scope('base_model'):
@@ -70,8 +75,8 @@ def build_model_fn(model, num_classes, num_train_examples):
         # Pretrain or finetuen anything else will update BN stats.
         model_train_mode = is_training
       # hiddens = model(features, is_training=model_train_mode)  # model_train_mode=True if fine_tune_after_block < 4, bug??
-      hiddens1 = model[0](features, is_training=model_train_mode)
-      hiddens2 = model[1](features, is_training=model_train_mode)
+      hiddens1 = model[0](features[0], is_training=model_train_mode)
+      hiddens2 = model[1](features[1], is_training=model_train_mode)
 
     # Add head and loss.
     if FLAGS.train_mode == 'pretrain':

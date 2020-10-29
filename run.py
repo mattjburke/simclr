@@ -241,6 +241,10 @@ flags.DEFINE_integer(
     'image_size', 224,
     'Input image size.')
 
+flags.DEFINE_integer(
+    'crop_size', 28,
+    'Size of crop to take from images for smaller network when using attn_simclr.')
+
 flags.DEFINE_float(
     'color_jitter_strength', 1.0,
     'The strength of color jittering.')

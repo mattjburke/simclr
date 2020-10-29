@@ -444,6 +444,27 @@ def batch_random_blur(images_list, height, width, blur_probability=0.5):
   return new_images_list
 
 
+# adding to crop after all other preprocessing
+def batch_random_crop(images_list, crop_height, crop_width):
+  """Apply efficient batch data transformations.
+
+  Args:
+    images_list: a list of image tensors.
+    height: the height of the crop to make.
+    width: the width of the crop to make.
+
+  Returns:
+    Feature list where images_list[0] ia unchanged and images in images_list[1] have all been cropped.
+  """
+
+  # images_list[0] reamians full size
+  # crop every image in images_list[1]
+  images_list[1] = tf.slice(images_list[1], [0, 0, 0, 0], [128, crop_height, crop_width, 3])  # placeholder for random cropping
+  # TODO: implement random cropping instead of just taking the same crop of all images
+
+  return images_list
+
+
 def preprocess_for_train(image,
                          height,
                          width,
@@ -517,3 +538,31 @@ def preprocess_image(image, height, width, is_training=False,
     return preprocess_for_train(image, height, width, color_distort)
   else:
     return preprocess_for_eval(image, height, width, test_crop)
+
+
+# does not include a random cropping of images
+def preprocess_image_attn(image, height, width, is_training=False,
+                     color_distort=True, test_crop=True):
+  """Preprocesses the given image.
+
+  Args:
+    image: `Tensor` representing an image of arbitrary size.
+    height: Height of output image.
+    width: Width of output image.
+    is_training: `bool` for whether the preprocessing is for training.
+    color_distort: whether to apply the color distortion.
+    test_crop: whether or not to extract a central crop of the images
+        (as for standard ImageNet evaluation) during the evaluation.
+
+  Returns:
+    A preprocessed image `Tensor` of range [0, 1].
+  """
+
+  # TODO: eliminate random cropping from preprocessing
+  image = tf.image.convert_image_dtype(image, dtype=tf.float32)
+  if is_training:
+    return preprocess_for_train(image, height, width, color_distort)
+  else:
+    return preprocess_for_eval(image, height, width, test_crop)
+
+

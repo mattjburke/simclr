@@ -122,9 +122,9 @@ def build_input_fn(builder, is_training):
       if FLAGS.train_mode == 'pretrain':
         xs = []
         for _ in range(2):  # Two transformations
-          xs.append(preprocess_fn_pretrain(image))
+          xs.append(preprocess_fn_pretrain(image))  # need to remove random cropping from this step
         image = tf.concat(xs, -1)
-        label = tf.zeros([num_classes])
+        label = tf.zeros([num_classes])  # because label is not used?
       else:
         image = preprocess_fn_finetune(image)
         label = tf.one_hot(label, num_classes)
@@ -156,10 +156,20 @@ def get_preprocess_fn(is_training, is_pretrain):
     test_crop = False
   else:
     test_crop = True
-  return functools.partial(
-      data_util.preprocess_image,
-      height=FLAGS.image_size,
-      width=FLAGS.image_size,
-      is_training=is_training,
-      color_distort=is_pretrain,
-      test_crop=test_crop)
+  if FLAGS.model_using == 'simclr':
+      return functools.partial(
+          data_util.preprocess_image,
+          height=FLAGS.image_size,
+          width=FLAGS.image_size,
+          is_training=is_training,
+          color_distort=is_pretrain,
+          test_crop=test_crop)
+  else:
+      return functools.partial(
+          data_util.preprocess_image_attn, # Need to make order consistent with [model_full, model_cropped] order in attn_model.get_models()
+          height=FLAGS.image_size,
+          width=FLAGS.image_size,
+          is_training=is_training,
+          color_distort=is_pretrain,
+          test_crop=test_crop)
+
