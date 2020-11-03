@@ -64,7 +64,10 @@ def build_model_fn(model, num_classes, num_train_examples):
         features_list = data_util.batch_random_crop(features_list, FLAGS.crop_size, FLAGS.crop_size)  # cropped -> hiddens1
     # features = tf.concat(features_list, 0)  # (num_transforms * bsz, h, w, c)
     # Concatenating again is not needed since list elements are used separately from now on
-    features = features_list  # will this work in train_then_eval mode?
+    features = features_list
+    if FLAGS.train_mode == 'finetune':
+        features = tf.concat(features_list, 0)
+        features = [features, features]  # since num_transforms is 1, was never split into list
 
     # Base network forward pass.
     with tf.variable_scope('base_model'):
