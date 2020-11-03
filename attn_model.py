@@ -75,8 +75,8 @@ def build_model_fn(model, num_classes, num_train_examples):
         # Pretrain or finetuen anything else will update BN stats.
         model_train_mode = is_training
       # hiddens = model(features, is_training=model_train_mode)  # model_train_mode=True if fine_tune_after_block < 4, bug??
-      hiddens1 = model[0](features[0], is_training=model_train_mode)
-      hiddens2 = model[1](features[1], is_training=model_train_mode)
+      hiddens1 = model[0](features[0], is_training=model_train_mode)  # output of full model
+      hiddens2 = model[1](features[1], is_training=model_train_mode)  # output of cropped model
 
     # Add head and loss.
     if FLAGS.train_mode == 'pretrain':
@@ -84,6 +84,14 @@ def build_model_fn(model, num_classes, num_train_examples):
       # hiddens_proj = model_util.projection_head(hiddens, is_training)  # by default adds 3 nonlinear layers, paper claims 2 only
       hiddens_proj1 = model_util.projection_head(hiddens1, is_training)
       hiddens_proj2 = model_util.projection_head(hiddens2, is_training)
+
+      # calculate attention mask
+      attn_mask = model_util.attn_mask_head(hiddens_proj2, is_training, name='attn_network')
+      attn_mask = tf.cast(attn_mask >= 0.5, tf.float32)
+      # apply attention mask
+      hiddens_proj1 = hiddens_proj1 * attn_mask
+      hiddens_proj2 = hiddens_proj2 * attn_mask
+
       contrast_loss, logits_con, labels_con = obj_lib.add_contrastive_loss_2(
           hiddens_proj1, hiddens_proj2,
           hidden_norm=FLAGS.hidden_norm,
@@ -241,13 +249,6 @@ def build_model_fn(model, num_classes, num_train_examples):
 
 
 def get_models():
-    # TODO build models. Currently just testing if training loop still works with 2 duplicate models.
-    # funtionality should be same as
-    # resnet.resnet_v1(
-    #         resnet_depth=FLAGS.resnet_depth,
-    #         width_multiplier=FLAGS.width_multiplier,
-    #         cifar_stem=FLAGS.image_size <= 32)
-    #
     model_cropped = resnet.resnet_v1(
         resnet_depth=FLAGS.resnet_depth,
         width_multiplier=FLAGS.width_multiplier,

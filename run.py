@@ -213,6 +213,10 @@ flags.DEFINE_integer(
     'Number of non-linear head layers.')
 
 flags.DEFINE_integer(
+    'num_attn_layers', 2,
+    'Number of attention network layers.')
+
+flags.DEFINE_integer(
     'ft_proj_selector', 0,
     'Which layer of the projection head to use during fine-tuning. '
     '0 means throwing away the projection head, and -1 means the final layer.')

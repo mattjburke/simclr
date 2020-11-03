@@ -450,17 +450,25 @@ def batch_random_crop(images_list, crop_height, crop_width):
 
   Args:
     images_list: a list of image tensors.
-    height: the height of the crop to make.
-    width: the width of the crop to make.
+    crop_height: the height of the crop to make.
+    crop_width: the width of the crop to make.
 
   Returns:
     Feature list where images_list[0] ia unchanged and images in images_list[1] have all been cropped.
   """
 
-  # images_list[0] reamians full size
-  # crop every image in images_list[1]
-  images_list[1] = tf.slice(images_list[1], [0, 0, 0, 0], [128, crop_height, crop_width, 3])  # placeholder for random cropping
-  # TODO: implement random cropping instead of just taking the same crop of all images
+  images_list[1] = tf.random_crop(images_list[1], [FLAGS.train_batch_size, crop_height, crop_width, 3])
+  # every image in the batch is cropped identically, but separate batches will have differing crops
+
+  # to crop every image in every batch differently:
+  # individual_imgs = tf.split(images_list[1], num_or_size_splits=FLAGS.train_batch_size, axis=0)
+  # print('individual_imgs[0].shape', individual_imgs[0].shape)
+  # for idx, img in individual_imgs:
+  #   individual_imgs[idx] = tf.random_crop(img, [1, crop_height, crop_width, 3])
+  # cropped_batch =tf.concat(individual_imgs, 0)
+  # print('cropped_batch shape', cropped_batch.shape)
+  # above gives error: OperatorNotAllowedInGraphError: iterating over `tf.Tensor` is not allowed: AutoGraph did not convert this function.Try decorating it directly with @ tf.function.
+  # even with @tf.function decoration above def batch_random_crop()
 
   return images_list
 
@@ -558,10 +566,9 @@ def preprocess_image_attn(image, height, width, is_training=False,
     A preprocessed image `Tensor` of range [0, 1].
   """
 
-  # TODO: eliminate random cropping from preprocessing
   image = tf.image.convert_image_dtype(image, dtype=tf.float32)
   if is_training:
-    return preprocess_for_train(image, height, width, color_distort)
+    return preprocess_for_train(image, height, width, color_distort, crop=False)  # no cropping here, crops by batch later
   else:
     return preprocess_for_eval(image, height, width, test_crop)
 
