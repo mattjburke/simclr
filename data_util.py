@@ -495,12 +495,21 @@ def preprocess_for_train(image,
   Returns:
     A preprocessed image `Tensor`.
   """
+
+
+  if FLAGS.model_using == 'attn_simclr':
+    image = tf.image.resize(image, [height, width])
+
   if crop:
     image = random_crop_with_resize(image, height, width)
   if flip:
     image = tf.image.random_flip_left_right(image)
   if color_distort:
     image = random_color_jitter(image, impl=impl)
+
+
+
+
   image = tf.reshape(image, [height, width, 3])
   image = tf.clip_by_value(image, 0., 1.)
   return image
