@@ -276,7 +276,11 @@ def build_hub_module(model, num_classes, global_step, checkpoint_path):
     inputs = tf.placeholder(
         tf.float32, [None, None, None, 3])
     with tf.variable_scope('base_model', reuse=tf.AUTO_REUSE):
-      hiddens = model(inputs, is_training)
+      if FLAGS.model_using == 'simclr':
+      	hiddens = model(inputs, is_training)
+      else:
+      	hiddens = model[0](inputs, is_training)
+
       for v in ['initial_conv', 'initial_max_pool', 'block_group1',
                 'block_group2', 'block_group3', 'block_group4',
                 'final_avg_pool']:
@@ -455,6 +459,7 @@ def main(argv):
           eval_steps=eval_steps,
           model=model,
           num_classes=num_classes)
+
 
 
 if __name__ == '__main__':
