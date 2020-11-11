@@ -91,7 +91,7 @@ def add_contrastive_loss(hidden,
 
 # hidden1 and hidden2 are fed as parameters, instead of splitting hidden into hidden1 and hidden2
 # This allows hidden1 to be a different architecture than hidden2 (as long as they have same output dimensions)
-def add_contrastive_loss_2(hidden1, hidden2,
+def add_contrastive_loss_2(hidden_f, hidden_c,
                          hidden_norm=True,
                          temperature=1.0,
                          tpu_context=None,
@@ -114,8 +114,8 @@ def add_contrastive_loss_2(hidden1, hidden2,
   # Get (normalized) hidden1 and hidden2.
   if hidden_norm:
     # hidden = tf.math.l2_normalize(hidden, -1)
-    hidden1 = tf.math.l2_normalize(hidden1, -1)
-    hidden2 = tf.math.l2_normalize(hidden2, -1)
+    hidden1 = tf.math.l2_normalize(hidden_f, -1)  # hidden_f and hidden_c are interchangable
+    hidden2 = tf.math.l2_normalize(hidden_c, -1)
   # hidden1, hidden2 = tf.split(hidden, 2, 0)  # splits hidden in half along 0 axis (batch size axis?), but should be duplicating hidden??
   batch_size = tf.shape(hidden1)[0]  # maybe one batch from dataloader = bs/2 images + bs/2 transformed images ??
   # we need to change how hidden1 and hidden2 are calculated so that they are fed through different base models

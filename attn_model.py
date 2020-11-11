@@ -67,7 +67,7 @@ def build_model_fn(model, num_classes, num_train_examples):
     features = features_list
     if FLAGS.train_mode == 'finetune':
         features = tf.concat(features_list, 0)
-        features = [features, features]  # since num_transforms is 1, was never split into list
+        features = [features, features]  # since num_transforms is 1, was never split into list. Only one network's output is used in eval, so they are never compared.
 
     # Base network forward pass.
     with tf.variable_scope('base_model'):
@@ -78,25 +78,25 @@ def build_model_fn(model, num_classes, num_train_examples):
         # Pretrain or finetuen anything else will update BN stats.
         model_train_mode = is_training
       # hiddens = model(features, is_training=model_train_mode)  # model_train_mode=True if fine_tune_after_block < 4, bug??
-      hiddens1 = model[0](features[0], is_training=model_train_mode)  # output of full model
-      hiddens2 = model[1](features[1], is_training=model_train_mode)  # output of cropped model
+      hiddens_f = model['model_full'](features[0], is_training=model_train_mode)  # output of full model
+      hiddens_c = model['model_cropped'](features[1], is_training=model_train_mode)  # output of cropped model
 
     # Add head and loss.
     if FLAGS.train_mode == 'pretrain':
       tpu_context = params['context'] if 'context' in params else None
       # hiddens_proj = model_util.projection_head(hiddens, is_training)  # by default adds 3 nonlinear layers, paper claims 2 only
-      hiddens_proj1 = model_util.projection_head(hiddens1, is_training)
-      hiddens_proj2 = model_util.projection_head(hiddens2, is_training)
+      hiddens_proj_f = model_util.projection_head(hiddens_f, is_training)
+      hiddens_proj_c = model_util.projection_head(hiddens_c, is_training)
 
       # calculate attention mask
-      attn_mask = model_util.attn_mask_head(hiddens_proj2, is_training, name='attn_network')
+      attn_mask = model_util.attn_mask_head(10*hiddens_proj_c, is_training, name='attn_network') # 10* helps converge faster
       attn_mask = tf.cast(attn_mask >= 0.5, tf.float32)
       # apply attention mask
-      hiddens_proj1 = hiddens_proj1 * attn_mask
-      hiddens_proj2 = hiddens_proj2 * attn_mask
+      hiddens_proj_f = hiddens_proj_f * attn_mask
+      hiddens_proj_c = hiddens_proj_c * attn_mask
 
       contrast_loss, logits_con, labels_con = obj_lib.add_contrastive_loss_2(
-          hiddens_proj1, hiddens_proj2,
+          hiddens_proj_f, hiddens_proj_c,
           hidden_norm=FLAGS.hidden_norm,
           temperature=FLAGS.temperature,
           tpu_context=tpu_context if is_training else None)
@@ -106,10 +106,10 @@ def build_model_fn(model, num_classes, num_train_examples):
       logits_con = tf.zeros([params['batch_size'], 10])
       labels_con = tf.zeros([params['batch_size'], 10])
       # hiddens = model_util.projection_head(hiddens, is_training)  # adds 3 nonlinear layers by default
-      hiddens1 = model_util.projection_head(hiddens1, is_training)
-      hiddens2 = model_util.projection_head(hiddens2, is_training)
+      hiddens_f = model_util.projection_head(hiddens_f, is_training)
+      hiddens_c = model_util.projection_head(hiddens_c, is_training)
       logits_sup = model_util.supervised_head(  # supervised head is just one linear layer, but 3 nonlinear layrs already added above
-          hiddens1, num_classes, is_training)  # only evaluate on output from model_full (otherwise need another param to choose)
+          hiddens_f, num_classes, is_training)  # only evaluate on output from model_full (otherwise need another param to choose)
       obj_lib.add_supervised_loss(  # just softmax_cross_entropy
           labels=labels['labels'],
           logits=logits_sup,
@@ -176,9 +176,10 @@ def build_model_fn(model, num_classes, num_train_examples):
                   'learning_rate', learning_rate,
                   step=tf.train.get_global_step())
 
-              tf2.summary.histogram(
-                  'mask_hist', attn_mask,
-                  step=tf.train.get_global_step())
+              if FLAGS.train_mode == 'pretrain':
+                tf2.summary.histogram(
+                    'mask_hist', attn_mask,
+                    step=tf.train.get_global_step())
 
       optimizer = model_util.get_optimizer(learning_rate)
       control_deps = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
@@ -259,14 +260,33 @@ def get_models():
     model_cropped = resnet.resnet_v1(
         resnet_depth=FLAGS.resnet_depth,
         width_multiplier=FLAGS.width_multiplier,
-        cifar_stem=FLAGS.image_size <= 32)
+        cifar_stem=FLAGS.crop_size <= 32)
+
+    # generic resnet_v2 keras
 
     model_full = resnet.resnet_v1(
         resnet_depth=FLAGS.resnet_depth,
         width_multiplier=FLAGS.width_multiplier,
         cifar_stem=FLAGS.image_size <= 32)
 
-    return [model_full, model_cropped]
+    # # with tf.variable_scope(name, reuse=tf.AUTO_REUSE):
+    # # uses call(inputs, training) instead of call(inputs, is_training)
+    # # does call() in keras use call(imputs, is_training)? (not tf.keras, just keras) No, they are now in sync
+    # # tf.disable_eager_execution()
+    # # with tf.Graph().as_default():
+    # model_cropped = tf2.keras.applications.resnet.ResNet50(include_top=False, weights=None, input_tensor=None,
+    #                                                       input_shape=(FLAGS.image_size, FLAGS.image_size, 3),
+    #                                                       pooling=None)
+    # model_full = tf2.keras.applications.resnet.ResNet50(include_top=False, weights=None, input_tensor=None,
+    #                                                    input_shape=(FLAGS.image_size, FLAGS.image_size, 3),
+    #                                                    pooling=None)
+    # model_cropped.summary()
+    # model_full.summary()
+    # # ValueError: Tensor("conv1_conv_1/kernel/Read/ReadVariableOp:0", shape=(7, 7, 3, 64), dtype=float32) must be from the same graph as Tensor("base_model/resnet50/conv1_pad/Pad:0", shape=(128, 38, 38, 3), dtype=float32).
+
+    models = {'model_full': model_full, 'model_cropped': model_cropped}
+
+    return models
 
 
 

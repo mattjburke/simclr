@@ -279,7 +279,7 @@ def build_hub_module(model, num_classes, global_step, checkpoint_path):
       if FLAGS.model_using == 'simclr':
       	hiddens = model(inputs, is_training)
       else:
-      	hiddens = model[0](inputs, is_training)
+      	hiddens = model['model_full'](inputs, is_training)
 
       for v in ['initial_conv', 'initial_max_pool', 'block_group1',
                 'block_group2', 'block_group3', 'block_group4',
