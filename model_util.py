@@ -59,8 +59,8 @@ def get_train_steps(num_examples):
 def learning_rate_schedule(base_learning_rate, num_examples):
   """Build learning rate schedule."""
   global_step = tf.train.get_or_create_global_step()
-  warmup_steps = int(round(
-      FLAGS.warmup_epochs * num_examples // FLAGS.train_batch_size))
+  warmup_steps = int(round(FLAGS.warmup_epochs * num_examples // FLAGS.train_batch_size))
+  orig_warmup_steps = int(round(10 * num_examples // FLAGS.train_batch_size))
   if FLAGS.learning_rate_scaling == 'linear':
     scaled_lr = base_learning_rate * FLAGS.train_batch_size / 256.
   elif FLAGS.learning_rate_scaling == 'sqrt':
@@ -68,7 +68,7 @@ def learning_rate_schedule(base_learning_rate, num_examples):
   else:
     raise ValueError('Unknown learning rate scaling {}'.format(
         FLAGS.learning_rate_scaling))
-  learning_rate = (tf.to_float(global_step) / int(warmup_steps) * scaled_lr
+  learning_rate = (tf.to_float(global_step) / int(orig_warmup_steps) * scaled_lr  # keeps the slope of lr increase the same as before
                    if warmup_steps else scaled_lr)
 
   # Cosine decay learning rate schedule
