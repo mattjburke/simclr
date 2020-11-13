@@ -56,11 +56,11 @@ def get_train_steps(num_examples):
       num_examples * FLAGS.train_epochs // FLAGS.train_batch_size + 1)
 
 
-def learning_rate_schedule(base_learning_rate, num_examples):
+def learning_rate_schedule(base_learning_rate, num_examples):  # base_learning_rate is FLAGS.learning_rate
   """Build learning rate schedule."""
   global_step = tf.train.get_or_create_global_step()
   warmup_steps = int(round(FLAGS.warmup_epochs * num_examples // FLAGS.train_batch_size))
-  orig_warmup_steps = int(round(10 * num_examples // FLAGS.train_batch_size))
+  orig_warmup_steps = int(round(FLAGS.lr_slope_warm_epochs * num_examples // FLAGS.train_batch_size))
   if FLAGS.learning_rate_scaling == 'linear':
     scaled_lr = base_learning_rate * FLAGS.train_batch_size / 256.
   elif FLAGS.learning_rate_scaling == 'sqrt':

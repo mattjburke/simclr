@@ -90,7 +90,14 @@ def build_model_fn(model, num_classes, num_train_examples):
 
       # calculate attention mask
       attn_mask = model_util.attn_mask_head(10*hiddens_proj_c, is_training, name='attn_network') # 10* helps converge faster
-      attn_mask = tf.cast(attn_mask >= 0.5, tf.float32)
+      if FLAGS.attention_output == 'hard':
+        attn_mask = tf.cast(attn_mask >= 0.5, tf.float32)  # use softmax instead? L2 norm? alter 10* also?
+      elif FLAGS.attention_output == 'softmax':
+        attn_mask = tf.nn.softmax(attn_mask)  # performed along last dim
+      elif FLAGS.attention_output == 'L2':
+        attn_mask = tf.math.l2_normalize(attn_mask)
+      else:
+        raise ValueError('Unknown attention_output {}'.format(FLAGS.attention_output))
       # apply attention mask
       hiddens_proj_f = hiddens_proj_f * attn_mask
       hiddens_proj_c = hiddens_proj_c * attn_mask

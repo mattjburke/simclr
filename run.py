@@ -34,10 +34,20 @@ import attn_model
 import tensorflow.compat.v1 as tf
 import tensorflow_datasets as tfds
 import tensorflow_hub as hub
+import datetime
 
 
 FLAGS = flags.FLAGS
 
+flags.DEFINE_integer(
+    'lr_slope_warm_epochs', 10,
+    'Determines the slope of the learning rate increase during warmup. Originally 10. This is used to calculate the '
+    'denominator, so a smaller number will cause the learning rate to increase more rapidly. In original SimCLR code, '
+    'this value was the same as warmup_epochs')
+
+flags.DEFINE_enum(
+    'attention_output', 'hard', ['hard', 'softmax', 'L2'],
+    'Whether the attention mask is converted to 1s and 0s or to a softmax output, or is regularized with L2')
 
 flags.DEFINE_enum(
     'model_using', 'simclr', ['simclr', 'attn_simclr'],
@@ -52,7 +62,7 @@ flags.DEFINE_enum(
     'How to scale the learning rate as a function of batch size.')
 
 flags.DEFINE_float(
-    'warmup_epochs', 10,
+    'warmup_epochs', 10,  # our whole training is warmup?
     'Number of epochs of warmup.')
 
 flags.DEFINE_float(
@@ -464,4 +474,12 @@ def main(argv):
 
 if __name__ == '__main__':
   tf.disable_v2_behavior()  # Disable eager mode when running with TF2.
+  # print all flags
+  # include datetime
+  # save flags in file that includes datetime? and commit/ git status ?
+  time_begin = datetime.datetime.now()
+  print('Time beginning is ', time_begin)
+  for f in FLAGS:
+      print(f)
+  # create file called flags_time_begin.txt inside of tensorboard folder to save flags
   app.run(main)
