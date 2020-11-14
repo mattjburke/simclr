@@ -127,6 +127,7 @@ checkpoint='None'
 fine_tune_after_block=-1
 model_dir=None
 data_dir=None
+use_tpu=False
 optimizer='lars'
 momentum=0.9
 eval_name=None
@@ -157,52 +158,138 @@ use_blur=True
 # set relevant flags that we do not want to be default values
 
 
+# RUN 1 --------------------------------------------------------------------
 # pretrain on imagenet
+model_dir=/work/LAS/jannesar-lab/janselh/SS_Clustering/simclr/tensorboard/attn_run1
 mode='train'
 train_mode='pretrain'
 train_batch_size=32
 train_epochs=10
+resnet_depth=50
 learning_rate=1.0
-temperature=0.5
+data_dir=/work/LAS/jannesar-lab/janselh/data/
+
+
 dataset=imagenet2012
 image_size=224
-resnet_depth=50
-use_blur=False
-#color_jitter_strength=0
-color_jitter_strength=0.5 
 crop_size=32
-model_dir=/work/LAS/jannesar-lab/janselh/SS_Clustering/simclr/second_board/simclr_pretrained_imagenet_test
-data_dir=/work/LAS/jannesar-lab/janselh/data/
-use_tpu=False
-weight_decay=0.0001
-#model_using='attn_simclr'
-keep_checkpoint_max=10
-eval_split=validation
-#warmup_epochs=10
-#attention_output='hard'
 
-# finetune
-#mode='train_then_eval'
-#train_mode='finetune'
-#train_batch_size=32
-#fine_tune_after_block=4
-#train_epochs=100
-#learning_rate=0.1
-#temperature=0.5
-#dataset=imagenet2012 # change to fine tune
-#image_size=224
-#resnet_depth=50
-#use_blur=False
-##color_jitter_strength=0
-#color_jitter_strength=0.5 
-#crop_size=32
-#model_dir=/work/LAS/jannesar-lab/janselh/SS_Clustering/simclr/tensorboard/simclr_pretrained_imagenet_test
-#checkpoint=$model_dir/$dataset
-#data_dir=/work/LAS/jannesar-lab/janselh/data/
-#use_tpu=False
-#weight_decay=0
-#optimizer=momentum
-#model_using='simclr'
+# some flags given by simclr readme instructions
+temperature=0.5
+use_tpu=False
+
+# no need to use blur or color jitter for only 10 epochs
+use_blur=False
+color_jitter_strength=0
+
+# flags to play around with
+model_using='attn_simclr'
+optimizer=adam
+learning_rate=1.0
+warmup_epochs=3
+lr_slope_warm_epochs=10
+attention_output='hard'
+
+# RUN 2 --------------------------------------------------------------------
+model_dir=/work/LAS/jannesar-lab/janselh/SS_Clustering/simclr/tensorboard/attn_run2
+model_using='attn_simclr'
+optimizer=adam
+learning_rate=1.0
+warmup_epochs=3
+lr_slope_warm_epochs=20  # make slope less steep
+attention_output='hard'
+
+# RUN 3 --------------------------------------------------------------------
+model_dir=/work/LAS/jannesar-lab/janselh/SS_Clustering/simclr/tensorboard/attn_run3
+model_using='attn_simclr'
+optimizer=adam
+learning_rate=1.0
+warmup_epochs=3
+lr_slope_warm_epochs=10
+attention_output='softmax'
+
+# RUN 4 --------------------------------------------------------------------
+model_dir=/work/LAS/jannesar-lab/janselh/SS_Clustering/simclr/tensorboard/attn_run4
+model_using='attn_simclr'
+optimizer=adam
+learning_rate=1.0
+warmup_epochs=3
+lr_slope_warm_epochs=20
+attention_output='softmax'
+
+# RUN 5 --------------------------------------------------------------------
+model_dir=/work/LAS/jannesar-lab/janselh/SS_Clustering/simclr/tensorboard/attn_run5
+model_using='attn_simclr'
+optimizer=adam
+learning_rate=1.0
+warmup_epochs=3
+lr_slope_warm_epochs=10
+attention_output='L2'
+
+# RUN 6 --------------------------------------------------------------------
+model_dir=/work/LAS/jannesar-lab/janselh/SS_Clustering/simclr/tensorboard/attn_run6
+model_using='attn_simclr'
+optimizer=adam
+learning_rate=1.0
+warmup_epochs=3
+lr_slope_warm_epochs=20
+attention_output='L2'
+
+# repeat above 6 with lars optimizer
+# RUN 7 ===========================================================================================
+model_dir=/work/LAS/jannesar-lab/janselh/SS_Clustering/simclr/tensorboard/attn_run7
+model_using='attn_simclr'
+optimizer=lars
+learning_rate=1.0
+warmup_epochs=3
+lr_slope_warm_epochs=10
+attention_output='hard'
+
+# RUN 8 --------------------------------------------------------------------
+model_dir=/work/LAS/jannesar-lab/janselh/SS_Clustering/simclr/tensorboard/attn_run8
+model_using='attn_simclr'
+optimizer=lars
+learning_rate=1.0
+warmup_epochs=3
+lr_slope_warm_epochs=20  # make slope less steep
+attention_output='hard'
+
+# RUN 9 --------------------------------------------------------------------
+model_dir=/work/LAS/jannesar-lab/janselh/SS_Clustering/simclr/tensorboard/attn_run9
+model_using='attn_simclr'
+optimizer=lars
+learning_rate=1.0
+warmup_epochs=3
+lr_slope_warm_epochs=10
+attention_output='softmax'
+
+# RUN 10 --------------------------------------------------------------------
+model_dir=/work/LAS/jannesar-lab/janselh/SS_Clustering/simclr/tensorboard/attn_run10
+model_using='attn_simclr'
+optimizer=lars
+learning_rate=1.0
+warmup_epochs=3
+lr_slope_warm_epochs=20
+attention_output='softmax'
+
+# RUN 11 --------------------------------------------------------------------
+model_dir=/work/LAS/jannesar-lab/janselh/SS_Clustering/simclr/tensorboard/attn_run11
+model_using='attn_simclr'
+optimizer=lars
+learning_rate=1.0
+warmup_epochs=3
+lr_slope_warm_epochs=10
+attention_output='L2'
+
+# RUN 12 --------------------------------------------------------------------
+model_dir=/work/LAS/jannesar-lab/janselh/SS_Clustering/simclr/tensorboard/attn_run12
+model_using='attn_simclr'
+optimizer=lars
+learning_rate=1.0
+warmup_epochs=3
+lr_slope_warm_epochs=20
+attention_output='L2'
+
 
 # =====================================================================================================================
 # area to modify each run above
