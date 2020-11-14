@@ -123,10 +123,7 @@ eval_split='validation'
 dataset='imagenet2012'
 cache_dataset=False
 train_mode='pretrain'
-<<<<<<< HEAD
-checkpoint='None'
-=======
->>>>>>> 8b438c02004115ce71814b922203da4c89746344
+checkpoint=None
 fine_tune_after_block=-1
 use_tpu=False
 optimizer='lars'
