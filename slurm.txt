@@ -1,0 +1,342 @@
+#!/bin/bash
+
+#SBATCH --nodes=1 # request one node
+
+#SBATCH --gres=gpu:1 #If you just need one gpu, you're done, if you need more you can change the number
+
+#SBATCH --partition=gpu #coms-instruction #specify the gpu partition
+
+#SBATCH --cpus-per-task=8  # ask for 8 cpus
+
+##SBATCH --mem=128# Maximum amount of memory this job will be given, try to estimate this to the best of your ability. This asks for 128 GB of ram.
+
+#SBATCH --time=8-00:00:00 # this set up the days that the script is going to run
+
+# everything below this line is optional, but are nice to have quality of life things
+
+#SBATCH --output=%J.out # tell it to store the output console text to a file called job.<assigned job number>.out
+
+#SBATCH --error=%J.err # tell it to store the error messages from the program (if it doesn't write them to normal console output) to a file called job.<assigned job muber>.err
+
+#SBATCH --job-name="SS" # a nice readable name to give your job so you know what it is when you see it in the queue, instead of just numbers
+
+# #SBATCH --mail-user=janselh@iastate.edu   # email address
+# #SBATCH --mail-type=BEGIN
+# #SBATCH --mail-type=END
+# #SBATCH --mail-type=FAIL
+
+# under this we just do what we would normally do to run the program, everything above this line is used by slurm to tell it what your job needs for resources
+
+# let's load the modules we need to do what we're going to do
+
+module purge  # so that runs are always identical
+module list
+
+module load ml-gpu
+module list
+
+# ml-gpu pip3 install tfds-nightly
+# ml-gpu pip3 install tensorflow-gan --user
+# ml-gpu pip3 install imutils
+
+#ml-gpu pip3 install tensorflow-hub 
+
+# let's make sure we're where we expect to be in the filesystem tree
+cd /work/LAS/jannesar-lab/SS_Clustering/simclr
+
+
+# make all possible flags variables
+logtostderr='default'
+alsologtostderr='default'
+log_dir='default'
+v='default'
+verbosity='default'
+logger_levels='default'
+stderrthreshold='default'
+showprefixforinfo='default'
+run_with_pdb='default'
+pdb_post_mortem='default'
+pdb='default'
+run_with_profiling='default'
+profile_file='default'
+use_cprofile_for_profiling='default'
+only_check_args='default'
+op_conversion_fallback_to_while_loop='default'
+test_random_seed='default'
+test_srcdir='default'
+test_tmpdir='default'
+test_randomize_ordering_seed='default'
+xml_output_file='default'
+tfhub_cache_dir='default'
+lr_slope_warm_epochs='default'
+attention_output='default'
+model_using='default'
+learning_rate='default'
+learning_rate_scaling='default'
+warmup_epochs='default'
+weight_decay='default'
+batch_norm_decay='default'
+train_batch_size='default'
+train_split='default'
+train_epochs='default'
+train_steps='default'
+eval_batch_size='default'
+train_summary_steps='default'
+checkpoint_epochs='default'
+checkpoint_steps='default'
+eval_split='default'
+dataset='default'
+cache_dataset='default'
+mode='default'
+train_mode='default'
+checkpoint='default'
+variable_schema='default'
+zero_init_logits_layer='default'
+fine_tune_after_block='default'
+master='default'
+model_dir='default'
+data_dir='default'
+use_tpu='default'
+tpu_name='default'
+tpu_zone='default'
+gcp_project='default'
+optimizer='default'
+momentum='default'
+eval_name='default'
+keep_checkpoint_max='default'
+keep_hub_module_max='default'
+temperature='default'
+hidden_norm='default'
+proj_head_mode='default'
+proj_out_dim='default'
+num_proj_layers='default'
+num_attn_layers='default'
+ft_proj_selector='default'
+global_bn='default'
+width_multiplier='default'
+resnet_depth='default'
+sk_ratio='default'
+se_ratio='default'
+image_size='default'
+crop_size='default'
+color_jitter_strength='default'
+use_blur='default'
+
+
+# set all flags we might change as their default values
+# all of these flags are in run command, so they need a value besides 'default'
+lr_slope_warm_epochs=10
+attention_output='hard'
+model_using='simclr'
+learning_rate=0.3,
+learning_rate_scaling='linear'
+warmup_epochs=10
+weight_decay=1e-4
+batch_norm_decay=0.9
+train_batch_size=512
+train_split='train'
+train_epochs=100
+train_steps=0
+eval_batch_size=256
+train_summary_steps=100
+checkpoint_epochs=1
+checkpoint_steps=0
+eval_split='validation'
+dataset='imagenet2012'
+cache_dataset=False
+mode='train'
+train_mode='pretrain'
+checkpoint=None
+fine_tune_after_block=-1
+model_dir=None
+data_dir=None
+optimizer='lars'
+momentum=0.9
+eval_name=None
+keep_checkpoint_max=5
+keep_hub_module_max=1
+temperature=0.1
+hidden_norm=True
+proj_head_mode='nonlinear'
+proj_out_dim=128
+num_proj_layers=3
+num_attn_layers=2
+ft_proj_selector=0
+global_bn=True
+width_multiplier=1
+resnet_depth=50
+sk_ratio=0.0
+se_ratio=0.0
+image_size=224
+crop_size=28
+color_jitter_strength=1.0
+use_blur=True
+
+
+# =====================================================================================================================
+# area to modify each run below
+# =====================================================================================================================
+
+# set relevant flags that we do not want to be default values
+
+# pretrain simclr on imagenet with adam
+mode='train'
+train_mode='pretrain'
+train_batch_size=32
+fine_tune_after_block=4
+train_epochs=10
+learning_rate=0.0000001
+temperature=0.5
+dataset=imagenet2012
+image_size=224
+resnet_depth=50
+use_blur=False
+color_jitter_strength=0
+#color_jitter_strength=0.5 
+crop_size=32
+model_dir=/work/LAS/jannesar-lab/janselh/SS_Clustering/simclr/tensorboard/simclr_pretrained_imagenet_old_optimizer
+data_dir=/work/LAS/jannesar-lab/janselh/data/
+use_tpu=False
+weight_decay=0
+optimizer=adam
+model_using='simclr'
+
+
+# =====================================================================================================================
+# area to modify each run above
+# =====================================================================================================================
+
+
+
+# echo all possible flags
+echo 'logtostderr = ' $logtostderr
+echo 'alsologtostderr = ' $alsologtostderr
+echo 'log_dir = ' $log_dir
+echo 'v = ' $v
+echo 'verbosity = ' $verbosity
+echo 'logger_levels = ' $logger_levels
+echo 'stderrthreshold = ' $stderrthreshold
+echo 'showprefixforinfo = ' $showprefixforinfo
+echo 'run_with_pdb = ' $run_with_pdb
+echo 'pdb_post_mortem = ' $pdb_post_mortem
+echo 'pdb = ' $pdb
+echo 'run_with_profiling = ' $run_with_profiling
+echo 'profile_file = ' $profile_file
+echo 'use_cprofile_for_profiling = ' $use_cprofile_for_profiling
+echo 'only_check_args = ' $only_check_args
+echo 'op_conversion_fallback_to_while_loop = ' $op_conversion_fallback_to_while_loop
+echo 'test_random_seed = ' $test_random_seed
+echo 'test_srcdir = ' $test_srcdir
+echo 'test_tmpdir = ' $test_tmpdir
+echo 'test_randomize_ordering_seed = ' $test_randomize_ordering_seed
+echo 'xml_output_file = ' $xml_output_file
+echo 'tfhub_cache_dir = ' $tfhub_cache_dir
+echo 'lr_slope_warm_epochs = ' $lr_slope_warm_epochs
+echo 'attention_output = ' $attention_output
+echo 'model_using = ' $model_using
+echo 'learning_rate = ' $learning_rate
+echo 'learning_rate_scaling = ' $learning_rate_scaling
+echo 'warmup_epochs = ' $warmup_epochs
+echo 'weight_decay = ' $weight_decay
+echo 'batch_norm_decay = ' $batch_norm_decay
+echo 'train_batch_size = ' $train_batch_size
+echo 'train_split = ' $train_split
+echo 'train_epochs = ' $train_epochs
+echo 'train_steps = ' $train_steps
+echo 'eval_batch_size = ' $eval_batch_size
+echo 'train_summary_steps = ' $train_summary_steps
+echo 'checkpoint_epochs = ' $checkpoint_epochs
+echo 'checkpoint_steps = ' $checkpoint_steps
+echo 'eval_split = ' $eval_split
+echo 'dataset = ' $dataset
+echo 'cache_dataset = ' $cache_dataset
+echo 'mode = ' $mode
+echo 'train_mode = ' $train_mode
+echo 'checkpoint = ' $checkpoint
+echo 'variable_schema = ' $variable_schema
+echo 'zero_init_logits_layer = ' $zero_init_logits_layer
+echo 'fine_tune_after_block = ' $fine_tune_after_block
+echo 'master = ' $master
+echo 'model_dir = ' $model_dir
+echo 'data_dir = ' $data_dir
+echo 'use_tpu = ' $use_tpu
+echo 'tpu_name = ' $tpu_name
+echo 'tpu_zone = ' $tpu_zone
+echo 'gcp_project = ' $gcp_project
+echo 'optimizer = ' $optimizer
+echo 'momentum = ' $momentum
+echo 'eval_name = ' $eval_name
+echo 'keep_checkpoint_max = ' $keep_checkpoint_max
+echo 'keep_hub_module_max = ' $keep_hub_module_max
+echo 'temperature = ' $temperature
+echo 'hidden_norm = ' $hidden_norm
+echo 'proj_head_mode = ' $proj_head_mode
+echo 'proj_out_dim = ' $proj_out_dim
+echo 'num_proj_layers = ' $num_proj_layers
+echo 'num_attn_layers = ' $num_attn_layers
+echo 'ft_proj_selector = ' $ft_proj_selector
+echo 'global_bn = ' $global_bn
+echo 'width_multiplier = ' $width_multiplier
+echo 'resnet_depth = ' $resnet_depth
+echo 'sk_ratio = ' $sk_ratio
+echo 'se_ratio = ' $se_ratio
+echo 'image_size = ' $image_size
+echo 'crop_size = ' $crop_size
+echo 'color_jitter_strength = ' $color_jitter_strength
+echo 'use_blur = ' $use_blur
+
+
+# run model with all possible flags fed in that we don't want as default
+echo 'beginning run.py'
+ml-gpu python3 run.py \
+  --lr_slope_warm_epochs=$lr_slope_warm_epochs \
+  --attention_output=$attention_output \
+  --model_using=$model_using \
+  --learning_rate=$learning_rate \
+  --learning_rate_scaling=$learning_rate_scaling \
+  --warmup_epochs=$warmup_epochs \
+  --weight_decay=$weight_decay \
+  --batch_norm_decay=$batch_norm_decay \
+  --train_batch_size=$train_batch_size \
+  --train_split=$train_split \
+  --train_epochs=$train_epochs \
+  --train_steps=$train_steps \
+  --eval_batch_size=$eval_batch_size \
+  --train_summary_steps=$train_summary_steps \
+  --checkpoint_epochs=$checkpoint_epochs \
+  --checkpoint_steps=$checkpoint_steps \
+  --eval_split=$eval_split \
+  --dataset=$dataset \
+  --cache_dataset=$cache_dataset \
+  --mode=$mode \
+  --train_mode=$train_mode \
+  --checkpoint=$checkpoint \
+  --fine_tune_after_block=$fine_tune_after_block \
+  --model_dir=$model_dir \
+  --data_dir=$data_dir \
+  --use_tpu=$use_tpu \
+  --optimizer=$optimizer \
+  --momentum=$momentum \
+  --eval_name=$eval_name \
+  --keep_checkpoint_max=$keep_checkpoint_max \
+  --keep_hub_module_max=$keep_hub_module_max \
+  --temperature=$temperature \
+  --hidden_norm=$hidden_norm \
+  --proj_head_mode=$proj_head_mode \
+  --proj_out_dim=$proj_out_dim \
+  --num_proj_layers=$num_proj_layers \
+  --num_attn_layers=$num_attn_layers \
+  --ft_proj_selector=$ft_proj_selector \
+  --global_bn=$global_bn \
+  --width_multiplier=$width_multiplier \
+  --resnet_depth=$resnet_depth \
+  --sk_ratio=$sk_ratio \
+  --se_ratio=$se_ratio \
+  --image_size=$image_size \
+  --crop_size=$crop_size \
+  --color_jitter_strength=$color_jitter_strength \
+  --use_blur=$use_blur \
+
+echo 'finished run.py'
+
+
