@@ -150,6 +150,7 @@ checkpoint=None
 fine_tune_after_block=-1
 model_dir=None
 data_dir=None
+use_tpu=False
 optimizer='lars'
 momentum=0.9
 eval_name=None
