@@ -90,37 +90,15 @@ cache_dataset='default'
 mode='default'
 train_mode='default'
 checkpoint='default'
-variable_schema='default'
-zero_init_logits_layer='default'
-fine_tune_after_block='default'
-master='default'
+variable_schema='?!global_step'
+zero_init_logits_layer=False
+master=None
 model_dir='default'
 data_dir='default'
-use_tpu='default'
-tpu_name='default'
-tpu_zone='default'
-gcp_project='default'
-optimizer='default'
-momentum='default'
-eval_name='default'
-keep_checkpoint_max='default'
-keep_hub_module_max='default'
-temperature='default'
-hidden_norm='default'
-proj_head_mode='default'
-proj_out_dim='default'
-num_proj_layers='default'
-num_attn_layers='default'
-ft_proj_selector='default'
-global_bn='default'
-width_multiplier='default'
-resnet_depth='default'
-sk_ratio='default'
-se_ratio='default'
-image_size='default'
-crop_size='default'
-color_jitter_strength='default'
-use_blur='default'
+use_tpu=False
+tpu_name=None
+tpu_zone=None
+gcp_project=None
 
 
 # set all flags we might change as their default values
@@ -144,9 +122,8 @@ checkpoint_steps=0
 eval_split='validation'
 dataset='imagenet2012'
 cache_dataset=False
-mode='train'
 train_mode='pretrain'
-checkpoint=None
+checkpoint='None'
 fine_tune_after_block=-1
 model_dir=None
 data_dir=None
@@ -179,28 +156,53 @@ use_blur=True
 
 # set relevant flags that we do not want to be default values
 
-# pretrain simclr on imagenet with adam
+
+# pretrain on imagenet
 mode='train'
 train_mode='pretrain'
 train_batch_size=32
-fine_tune_after_block=4
 train_epochs=10
-learning_rate=0.0000001
+learning_rate=1.0
 temperature=0.5
 dataset=imagenet2012
 image_size=224
 resnet_depth=50
 use_blur=False
-color_jitter_strength=0
-#color_jitter_strength=0.5 
+#color_jitter_strength=0
+color_jitter_strength=0.5 
 crop_size=32
-model_dir=/work/LAS/jannesar-lab/janselh/SS_Clustering/simclr/tensorboard/simclr_pretrained_imagenet_old_optimizer
+model_dir=/work/LAS/jannesar-lab/janselh/SS_Clustering/simclr/second_board/simclr_pretrained_imagenet_test
 data_dir=/work/LAS/jannesar-lab/janselh/data/
 use_tpu=False
-weight_decay=0
-optimizer=adam
-model_using='simclr'
+weight_decay=0.0001
+#model_using='attn_simclr'
+keep_checkpoint_max=10
+eval_split=validation
+#warmup_epochs=10
+#attention_output='hard'
 
+# finetune
+#mode='train_then_eval'
+#train_mode='finetune'
+#train_batch_size=32
+#fine_tune_after_block=4
+#train_epochs=100
+#learning_rate=0.1
+#temperature=0.5
+#dataset=imagenet2012 # change to fine tune
+#image_size=224
+#resnet_depth=50
+#use_blur=False
+##color_jitter_strength=0
+#color_jitter_strength=0.5 
+#crop_size=32
+#model_dir=/work/LAS/jannesar-lab/janselh/SS_Clustering/simclr/tensorboard/simclr_pretrained_imagenet_test
+#checkpoint=$model_dir/$dataset
+#data_dir=/work/LAS/jannesar-lab/janselh/data/
+#use_tpu=False
+#weight_decay=0
+#optimizer=momentum
+#model_using='simclr'
 
 # =====================================================================================================================
 # area to modify each run above
@@ -287,7 +289,7 @@ echo 'use_blur = ' $use_blur
 
 
 # run model with all possible flags fed in that we don't want as default
-echo 'beginning run.py'
+echo 'run.py'
 ml-gpu python3 run.py \
   --lr_slope_warm_epochs=$lr_slope_warm_epochs \
   --attention_output=$attention_output \
@@ -310,14 +312,14 @@ ml-gpu python3 run.py \
   --cache_dataset=$cache_dataset \
   --mode=$mode \
   --train_mode=$train_mode \
-  --checkpoint=$checkpoint \
+  --zero_init_logits_layer=$zero_init_logits_layer \
   --fine_tune_after_block=$fine_tune_after_block \
   --model_dir=$model_dir \
   --data_dir=$data_dir \
   --use_tpu=$use_tpu \
+  --tpu_zone=$tpu_zone \
   --optimizer=$optimizer \
   --momentum=$momentum \
-  --eval_name=$eval_name \
   --keep_checkpoint_max=$keep_checkpoint_max \
   --keep_hub_module_max=$keep_hub_module_max \
   --temperature=$temperature \
@@ -338,5 +340,4 @@ ml-gpu python3 run.py \
   --use_blur=$use_blur \
 
 echo 'finished run.py'
-
 
