@@ -123,14 +123,14 @@ eval_split='validation'
 dataset='imagenet2012'
 cache_dataset=False
 train_mode='pretrain'
+<<<<<<< HEAD
 checkpoint='None'
+=======
+>>>>>>> 8b438c02004115ce71814b922203da4c89746344
 fine_tune_after_block=-1
-model_dir=None
-data_dir=None
 use_tpu=False
 optimizer='lars'
 momentum=0.9
-eval_name=None
 keep_checkpoint_max=5
 keep_hub_module_max=1
 temperature=0.1
@@ -150,6 +150,9 @@ crop_size=28
 color_jitter_strength=1.0
 use_blur=True
 
+model_dir=None
+data_dir=None
+checkpoint=None  # checkpoint needs to be included in run if changing from None (uncomment at bottom)
 
 # =====================================================================================================================
 # area to modify each run below
@@ -399,7 +402,6 @@ ml-gpu python3 run.py \
   --cache_dataset=$cache_dataset \
   --mode=$mode \
   --train_mode=$train_mode \
-  --zero_init_logits_layer=$zero_init_logits_layer \
   --fine_tune_after_block=$fine_tune_after_block \
   --model_dir=$model_dir \
   --data_dir=$data_dir \
@@ -425,6 +427,7 @@ ml-gpu python3 run.py \
   --crop_size=$crop_size \
   --color_jitter_strength=$color_jitter_strength \
   --use_blur=$use_blur \
+#  --checkpoint=$checkpoint \
 
 echo 'finished run.py'
 
