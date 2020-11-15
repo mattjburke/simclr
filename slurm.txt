@@ -90,37 +90,15 @@ cache_dataset='default'
 mode='default'
 train_mode='default'
 checkpoint='default'
-variable_schema='default'
-zero_init_logits_layer='default'
-fine_tune_after_block='default'
-master='default'
+variable_schema='?!global_step'
+zero_init_logits_layer=False
+master=None
 model_dir='default'
 data_dir='default'
-use_tpu='default'
-tpu_name='default'
-tpu_zone='default'
-gcp_project='default'
-optimizer='default'
-momentum='default'
-eval_name='default'
-keep_checkpoint_max='default'
-keep_hub_module_max='default'
-temperature='default'
-hidden_norm='default'
-proj_head_mode='default'
-proj_out_dim='default'
-num_proj_layers='default'
-num_attn_layers='default'
-ft_proj_selector='default'
-global_bn='default'
-width_multiplier='default'
-resnet_depth='default'
-sk_ratio='default'
-se_ratio='default'
-image_size='default'
-crop_size='default'
-color_jitter_strength='default'
-use_blur='default'
+use_tpu=False
+tpu_name=None
+tpu_zone=None
+gcp_project=None
 
 
 # set all flags we might change as their default values
@@ -144,8 +122,8 @@ checkpoint_steps=0
 eval_split='validation'
 dataset='imagenet2012'
 cache_dataset=False
-mode='train'
 train_mode='pretrain'
+checkpoint=None
 fine_tune_after_block=-1
 use_tpu=False
 optimizer='lars'
@@ -179,15 +157,18 @@ checkpoint=None  # checkpoint needs to be included in run if changing from None 
 
 # set relevant flags that we do not want to be default values
 
-# RUN 1 -------------------------------------------------------------------------
-# pretrain our model for 10 epochs
+
+# RUN 1 --------------------------------------------------------------------
+# pretrain on imagenet
 model_dir=/work/LAS/jannesar-lab/janselh/SS_Clustering/simclr/tensorboard/attn_run1
 mode='train'
 train_mode='pretrain'
 train_batch_size=32
 train_epochs=10
 resnet_depth=50
+learning_rate=1.0
 data_dir=/work/LAS/jannesar-lab/janselh/data/
+
 
 dataset=imagenet2012
 image_size=224
@@ -310,7 +291,6 @@ lr_slope_warm_epochs=20
 attention_output='L2'
 
 
-
 # =====================================================================================================================
 # area to modify each run above
 # =====================================================================================================================
@@ -396,7 +376,7 @@ echo 'use_blur = ' $use_blur
 
 
 # run model with all possible flags fed in that we don't want as default
-echo 'beginning run.py'
+echo 'run.py'
 ml-gpu python3 run.py \
   --lr_slope_warm_epochs=$lr_slope_warm_epochs \
   --attention_output=$attention_output \
@@ -423,6 +403,7 @@ ml-gpu python3 run.py \
   --model_dir=$model_dir \
   --data_dir=$data_dir \
   --use_tpu=$use_tpu \
+  --tpu_zone=$tpu_zone \
   --optimizer=$optimizer \
   --momentum=$momentum \
   --keep_checkpoint_max=$keep_checkpoint_max \
@@ -446,5 +427,4 @@ ml-gpu python3 run.py \
 #  --checkpoint=$checkpoint \
 
 echo 'finished run.py'
-
 
