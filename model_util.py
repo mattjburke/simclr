@@ -69,7 +69,7 @@ def learning_rate_schedule(base_learning_rate, num_examples):  # base_learning_r
     raise ValueError('Unknown learning rate scaling {}'.format(
         FLAGS.learning_rate_scaling))
   learning_rate = (tf.to_float(global_step) / int(orig_warmup_steps) * scaled_lr  # keeps the slope of lr increase the same as before
-                   if warmup_steps else scaled_lr)
+                   if warmup_steps else (warmup_steps / int(orig_warmup_steps) * scaled_lr))
 
   # Cosine decay learning rate schedule
   total_steps = get_train_steps(num_examples)
