@@ -10,7 +10,7 @@
 
 ##SBATCH --mem=128# Maximum amount of memory this job will be given, try to estimate this to the best of your ability. This asks for 128 GB of ram.
 
-#SBATCH --time=5-00:00:00 # this set up the days that the script is going to run
+#SBATCH --time=3-00:00:00 # this set up the days that the script is going to run
 
 # everything below this line is optional, but are nice to have quality of life things
 
@@ -190,6 +190,12 @@ warmup_epochs=3
 lr_slope_warm_epochs=10
 attention_output='hard'
 
+#Observations:
+#The first 30k steps the model did not improve at all and the contrastive
+#accuracy was 0.031.  After this, the contrastive loss and accuracy started
+#fluctuating but never improved.
+
+
 # RUN 2 --------------------------------------------------------------------
 model_dir=/work/LAS/jannesar-lab/janselh/SS_Clustering/simclr/attn_boards/attn_run2
 model_using='attn_simclr'
@@ -198,6 +204,12 @@ learning_rate=1.0
 warmup_epochs=3
 lr_slope_warm_epochs=20  # make slope less steep
 attention_output='hard'
+
+#Observations:
+#The first 60k steps the model did not improve at all and the contrastive
+#accuracy was 0.031.  After this, the contrastive loss and accuracy started
+#fluctuating but never improved.
+
 
 # RUN 3 --------------------------------------------------------------------
 model_dir=/work/LAS/jannesar-lab/janselh/SS_Clustering/simclr/attn_boards/attn_run3
@@ -208,6 +220,10 @@ warmup_epochs=3
 lr_slope_warm_epochs=10
 attention_output='softmax'
 
+#Observations:
+#This model did very bad from the beginning, the accuracy is low and the loss is
+#high.
+
 # RUN 4 --------------------------------------------------------------------
 model_dir=/work/LAS/jannesar-lab/janselh/SS_Clustering/simclr/attn_boards/attn_run4
 model_using='attn_simclr'
@@ -216,6 +232,10 @@ learning_rate=1.0
 warmup_epochs=3
 lr_slope_warm_epochs=20
 attention_output='softmax'
+
+#Observations:
+#This model did very bad from the beginning, the accuracy is low and the loss is
+#high.
 
 # RUN 5 --------------------------------------------------------------------
 model_dir=/work/LAS/jannesar-lab/janselh/SS_Clustering/simclr/attn_boards/attn_run5
@@ -226,6 +246,10 @@ warmup_epochs=3
 lr_slope_warm_epochs=10
 attention_output='L2'
 
+#Observations:
+#The model performed bad from the beginning but something strange happened is
+#that after 200k steps the model results were constant.
+
 # RUN 6 --------------------------------------------------------------------
 model_dir=/work/LAS/jannesar-lab/janselh/SS_Clustering/simclr/attn_boards/attn_run6
 model_using='attn_simclr'
@@ -234,6 +258,9 @@ learning_rate=1.0
 warmup_epochs=3
 lr_slope_warm_epochs=20
 attention_output='L2'
+
+#Observations:
+#Similar to 5 but instead of being constant it stayed on the same level with some noise.
 
 # repeat above 6 with lars optimizer
 # RUN 7 ===========================================================================================
@@ -245,6 +272,9 @@ warmup_epochs=3
 lr_slope_warm_epochs=10
 attention_output='hard'
 
+#Observations:
+#Performed good at the beginning and after 30k convergence was messed up.
+
 # RUN 8 --------------------------------------------------------------------
 model_dir=/work/LAS/jannesar-lab/janselh/SS_Clustering/simclr/attn_boards/attn_run8
 model_using='attn_simclr'
@@ -253,6 +283,9 @@ learning_rate=1.0
 warmup_epochs=3
 lr_slope_warm_epochs=20  # make slope less steep
 attention_output='hard'
+
+#Observations:
+#Performed good at the beginning and after 40k convergence was messed up.
 
 # RUN 9 --------------------------------------------------------------------
 model_dir=/work/LAS/jannesar-lab/janselh/SS_Clustering/simclr/attn_boards/attn_run9
@@ -263,6 +296,10 @@ warmup_epochs=3
 lr_slope_warm_epochs=10
 attention_output='softmax'
 
+#Observations:
+#One of the best performances, it did very good at the beginning and then it
+#started decreasing but with a low rate. Not like other runs.
+
 ## RUN 10 --------------------------------------------------------------------
 #model_dir=/work/LAS/jannesar-lab/janselh/SS_Clustering/simclr/attn_boards/attn_run10
 #model_using='attn_simclr'
@@ -271,7 +308,10 @@ attention_output='softmax'
 #warmup_epochs=3
 #lr_slope_warm_epochs=20
 #attention_output='softmax'
-#
+
+#Observations:
+#Very similar to run 9 just a little below in performance.
+
 ## RUN 11 --------------------------------------------------------------------
 #model_dir=/work/LAS/jannesar-lab/janselh/SS_Clustering/simclr/attn_boards/attn_run11
 #model_using='attn_simclr'
@@ -280,6 +320,10 @@ attention_output='softmax'
 #warmup_epochs=3
 #lr_slope_warm_epochs=10
 #attention_output='L2'
+
+
+#Observations:
+#Good at the beginning, after 12k steps it messed up.
 
 ## RUN 12 --------------------------------------------------------------------
 #model_dir=/work/LAS/jannesar-lab/janselh/SS_Clustering/simclr/attn_boards/attn_run12
@@ -290,25 +334,33 @@ attention_output='softmax'
 #lr_slope_warm_epochs=20
 #attention_output='L2'
 
-## RUN 13 --------------------------------------------------------------------
-#model_dir=/work/LAS/jannesar-lab/janselh/SS_Clustering/simclr/attn_boards/simclr_run1
-#model_using='simclr'
+#Observations:
+#Bad performance overall, good until 10k.
+
+# RUN 13 --------------------------------------------------------------------
+# same as model 9 without warmup 
+#model_dir=/work/LAS/jannesar-lab/janselh/SS_Clustering/simclr/attn_boards/attn_run13
+#model_using='attn_simclr'
+#optimizer=adam
+#learning_rate=0.000001
+#warmup_epochs=0
+#lr_slope_warm_epochs=20
+#attention_output='softmax'
+#
+#
+## RUN 14 --------------------------------------------------------------------
+## same as model 9 tested with the old learning rate scheduler
+#model_dir=/work/LAS/jannesar-lab/janselh/SS_Clustering/simclr/attn_boards/attn_run14
+#model_using='attn_simclr'
 #optimizer=lars
 #learning_rate=1.0
 #warmup_epochs=3
 #lr_slope_warm_epochs=10
-#attention_output='L2'
-
-# RUN 14 --------------------------------------------------------------------
-# same as model 9 tested with the old learning rate scheduler
-model_dir=/work/LAS/jannesar-lab/janselh/SS_Clustering/simclr/attn_boards/attn_run14
-model_using='attn_simclr'
-optimizer=lars
-learning_rate=1.0
-warmup_epochs=3
-lr_slope_warm_epochs=10
-attention_output='softmax'
-
+#attention_output='softmax'
+#
+##Observations:
+##Very similar to run 9, I was testing the old scheduler.
+#
 # RUN 15 --------------------------------------------------------------------
 # same as model 9 tested with the old learning rate scheduler
 #model_dir=/work/LAS/jannesar-lab/janselh/SS_Clustering/simclr/attn_boards/attn_run15
@@ -318,22 +370,136 @@ attention_output='softmax'
 #warmup_epochs=0
 #lr_slope_warm_epochs=20
 #attention_output='softmax'
-
-# RUN 16 --------------------------------------------------------------------
-# same as model 9 tested with the old learning rate scheduler
-model_dir=/work/LAS/jannesar-lab/janselh/SS_Clustering/simclr/attn_boards/attn_run16
-model_using='attn_simclr'
-optimizer=adam
-learning_rate=1.0
-warmup_epochs=0
-lr_slope_warm_epochs=20
-attention_output='softmax'
+#
+#
+## RUN 16 --------------------------------------------------------------------
+## same as model 9 without warmup 
+#model_dir=/work/LAS/jannesar-lab/janselh/SS_Clustering/simclr/attn_boards/attn_run16
+#model_using='attn_simclr'
+#optimizer=adam
+#learning_rate=1.0
+#warmup_epochs=0
+#lr_slope_warm_epochs=20
+#attention_output='softmax'
 
 # RUN 17 --------------------------------------------------------------------
-model_dir=/work/LAS/jannesar-lab/janselh/SS_Clustering/simclr/attn_boards/simclr_run2
-model_using='simclr'
-optimizer=adam
-learning_rate=1.0
+# same as model 9 without warmup 
+#model_dir=/work/LAS/jannesar-lab/janselh/SS_Clustering/simclr/attn_boards/attn_run17
+#model_using='attn_simclr'
+#optimizer=adam
+#learning_rate=0.001
+#warmup_epochs=0
+#lr_slope_warm_epochs=20
+#attention_output='softmax'
+#
+## RUN 18 --------------------------------------------------------------------
+## same as model 9 without warmup 
+#model_dir=/work/LAS/jannesar-lab/janselh/SS_Clustering/simclr/attn_boards/attn_run18
+#model_using='attn_simclr'
+#optimizer=lars
+#learning_rate=0.001
+#warmup_epochs=0
+#lr_slope_warm_epochs=20
+#attention_output='softmax'
+
+# RUN 19------------------------------------------------------------------
+# same as model 9 without warmup 
+#model_dir=/work/LAS/jannesar-lab/janselh/SS_Clustering/simclr/attn_boards/attn_run19
+#model_using='attn_simclr'
+#optimizer=adam
+#learning_rate=0.0001
+#warmup_epochs=0
+#lr_slope_warm_epochs=20
+#attention_output='softmax'
+
+# RUN 20------------------------------------------------------------------
+# same as model 9 without warmup 
+#model_dir=/work/LAS/jannesar-lab/janselh/SS_Clustering/simclr/attn_boards/attn_run20
+#model_using='attn_simclr'
+#optimizer=lars
+#learning_rate=0.0001
+#warmup_epochs=0
+#lr_slope_warm_epochs=20
+#attention_output='softmax'
+
+## RUN 21------------------------------------------------------------------
+## same as model 9 without warmup 
+#model_dir=/work/LAS/jannesar-lab/janselh/SS_Clustering/simclr/attn_boards/attn_run21
+#model_using='attn_simclr'
+#optimizer=lars
+#learning_rate=0.0001
+#warmup_epochs=0
+#lr_slope_warm_epochs=10
+#attention_output='softmax'
+
+# RUN 22------------------------------------------------------------------
+## same as model 9 without warmup 
+#model_dir=/work/LAS/jannesar-lab/janselh/SS_Clustering/simclr/attn_boards/attn_run22
+#model_using='attn_simclr'
+#optimizer=adam
+#learning_rate=0.0001
+#warmup_epochs=0
+#lr_slope_warm_epochs=10
+#attention_output='softmax'
+
+# RUN 23------------------------------------------------------------------
+## same as model 9 without warmup 
+#model_dir=/work/LAS/jannesar-lab/janselh/SS_Clustering/simclr/attn_boards/attn_run23
+#model_using='attn_simclr'
+#optimizer=adam
+#learning_rate=0.00001
+#warmup_epochs=0
+#lr_slope_warm_epochs=10
+#attention_output='softmax'
+
+# RUN 24------------------------------------------------------------------
+# same as model 9 without warmup 
+#model_dir=/work/LAS/jannesar-lab/janselh/SS_Clustering/simclr/attn_boards/attn_run24
+#model_using='attn_simclr'
+#optimizer=adam
+#learning_rate=0.000001
+#warmup_epochs=0
+#lr_slope_warm_epochs=10
+#attention_output='softmax'
+
+## SIMCLR--------------------------------------------------------------------
+# RUN 1 --------------------------------------------------------------------
+#model_dir=/work/LAS/jannesar-lab/janselh/SS_Clustering/simclr/attn_boards/simclr_run1
+#model_using='simclr'
+#optimizer=lars
+#learning_rate=1.0
+#warmup_epochs=3
+#lr_slope_warm_epochs=10
+#attention_output='L2'
+#
+## RUN 2 --------------------------------------------------------------------
+#model_dir=/work/LAS/jannesar-lab/janselh/SS_Clustering/simclr/attn_boards/simclr_run2
+#model_using='simclr'
+#optimizer=adam
+#learning_rate=1.0
+#warmup_epochs=0
+#lr_slope_warm_epochs=10
+#attention_output='L2'
+
+# RUN Debug --------------------------------------------------------------------
+mode='eval'
+train_mode='finetune'
+fine_tune_after_block=4
+zero_init_logits_layer=True
+variable_schema="(?!global_step|(?:.*/|^)Momentum|head)" 
+global_bn=False
+dataset=oxford_iiit_pet
+#dataset=cifar100
+#dataset=cifar10
+#dataset=imagenet2012
+checkpoint=/work/LAS/jannesar-lab/janselh/SS_Clustering/simclr/attn_boards/attn_run19/
+model_dir=/work/LAS/jannesar-lab/janselh/SS_Clustering/simclr/attn_boards/attn_run19/$dataset
+model_using='attn_simclr'
+weight_decay=0.0 
+optimizer=momentum
+eval_split='test'
+#eval_split='validation'
+learning_rate=0.1
 warmup_epochs=0
 lr_slope_warm_epochs=10
 attention_output='L2'
