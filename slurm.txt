@@ -471,7 +471,7 @@ attention_output='softmax'
 #warmup_epochs=3
 #lr_slope_warm_epochs=10
 #attention_output='L2'
-#
+
 ## RUN 2 --------------------------------------------------------------------
 #model_dir=/work/LAS/jannesar-lab/janselh/SS_Clustering/simclr/attn_boards/simclr_run2
 #model_using='simclr'
@@ -481,30 +481,63 @@ attention_output='softmax'
 #lr_slope_warm_epochs=10
 #attention_output='L2'
 
-# RUN Debug --------------------------------------------------------------------
-mode='eval'
-train_mode='finetune'
-fine_tune_after_block=4
-zero_init_logits_layer=True
-variable_schema="(?!global_step|(?:.*/|^)Momentum|head)" 
-global_bn=False
-dataset=oxford_iiit_pet
-#dataset=cifar100
-#dataset=cifar10
-#dataset=imagenet2012
-checkpoint=/work/LAS/jannesar-lab/janselh/SS_Clustering/simclr/attn_boards/attn_run19/
-model_dir=/work/LAS/jannesar-lab/janselh/SS_Clustering/simclr/attn_boards/attn_run19/$dataset
+# RUN Re-Runs ----------------------------------------------------------------
+# This section is to test that a model can be loaded correctly
+# the loss function should generate values that are close to the
+# previous ones.
+
+# Loss test on the original model
+#model_dir=/work/LAS/jannesar-lab/janselh/SS_Clustering/simclr/attn_boards/simclr_pretrained_imagenet_copy
+#model_using='simclr'
+#optimizer=lars
+#learning_rate=0.0001
+#warmup_epochs=0
+#lr_slope_warm_epochs=20
+#attention_output='softmax'
+#train_epochs=15
+
+# Loss test on the our model
+model_dir=/work/LAS/jannesar-lab/janselh/SS_Clustering/simclr/attn_boards/attn_run19_copy
 model_using='attn_simclr'
-weight_decay=0.0 
-optimizer=momentum
-eval_split='test'
-#eval_split='validation'
-learning_rate=0.1
+optimizer=adam
+learning_rate=0.0001
 warmup_epochs=0
-lr_slope_warm_epochs=10
-attention_output='L2'
+lr_slope_warm_epochs=20
+attention_output='softmax'
+train_epochs=15
 
+# Loss test on the our version of their model
+#model_dir=/work/LAS/jannesar-lab/janselh/SS_Clustering/simclr/attn_boards/simclr_run1_copy
+#model_using='simclr'
+#optimizer=lars
+#learning_rate=1.0
+#warmup_epochs=3
+#lr_slope_warm_epochs=10
+#attention_output='L2'
+#train_epochs=15
 
+# RUN Debug --------------------------------------------------------------------
+#mode='train_then_eval'
+#train_mode='finetune'
+#fine_tune_after_block=4
+#zero_init_logits_layer=True
+#variable_schema="(?!global_step|(?:.*/|^)Momentum|head)" 
+#global_bn=False
+#dataset=oxford_iiit_pet
+##dataset=cifar100
+##dataset=cifar10
+##dataset=imagenet2012
+#checkpoint=/work/LAS/jannesar-lab/janselh/SS_Clustering/simclr/attn_boards/simclr_pretrained_imagenet/
+#model_dir=/work/LAS/jannesar-lab/janselh/SS_Clustering/simclr/attn_boards/simclr_pretrained_imagenet/$dataset
+#model_using='simclr'
+#weight_decay=0.0 
+#optimizer=momentum
+#eval_split='test'
+##eval_split='validation'
+#learning_rate=0.1
+#warmup_epochs=0
+#lr_slope_warm_epochs=10
+#attention_output='softmax'
 
 # =====================================================================================================================
 # area to modify each run above
